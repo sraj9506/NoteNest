@@ -1,9 +1,12 @@
-import React from 'react'
+import React from "react";
+import Notes from "./Notes";
+import AddNote from "./AddNote";
 
-export default function Home() {
+export default function Home(props) {
   return (
-    <div className='mt-5 pt-4'>
-      This is home.
+    <div className="container">
+      <AddNote showAlert={props.showAlert}/>
+      <Notes showAlert={props.showAlert}/>
     </div>
-  )
+  );
 }

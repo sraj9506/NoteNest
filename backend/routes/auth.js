@@ -21,13 +21,13 @@ router.post(
     //Check whether paramters are valid or not.
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success:false,errors: errors.array() });
     }
     //Check whether user already exist or not.
     try {
       let user = await User.findOne({ email: req.body.email });
       if (user) {
-        return res.status(400).json({ error: "Sorry, User already exist !" });
+        return res.status(400).json({ success:false,error: "Sorry, User already exist !" });
       }
       let secPass = await bcrypt.hash(req.body.password, 10);
       //Create user
@@ -36,9 +36,9 @@ router.post(
         password: secPass,
         email: req.body.email,
       });
-      res.json({ message: "Registration done !" });
+      res.json({ success:true});
     } catch (error) {
-      res.status(500).json({ error: "Internal server error !" });
+      res.status(500).json({ success:false,error: "Internal server error !" });
     }
   }
 );
@@ -54,18 +54,18 @@ router.post(
     //Check whether paramters are valid or not.
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success:false,errors: errors.array() });
     }
     //Check whether user exist or not.
     const { email, password } = req.body;
     try {
       let user = await User.findOne({ email: email });
       if (!user) {
-        return res.status(400).json({ error: "Enter valid credentials !" });
+        return res.status(400).json({ success:false,error: "Enter valid credentials !" });
       }
       const passwordCompare = await bcrypt.compare(password, user.password);
       if (!passwordCompare) {
-        return res.status(400).json({ error: "Enter valid credentials !" });
+        return res.status(400).json({success:false, error: "Enter valid credentials !" });
       }
       const payload = {
         user: {
@@ -73,9 +73,9 @@ router.post(
         },
       };
       const authToken = jwt.sign(payload, JWT_SECRET);
-      res.json({ authToken });
+      res.json({success:true, authToken,name : user.name });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error !" });
+      res.status(500).json({ success:false,error: "Internal server error !" });
     }
   }
 );

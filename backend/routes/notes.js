@@ -7,14 +7,14 @@ const router = express.Router();
 //Route 1 : get all the notes. using GET : "/api/auth/fetchallnotes"
 router.get("/fetchallnotes", fetchuser, async (req, res) => {
   try {
-    const notes = await Notes.find({ user: req.user.id });
+    const notes = await Notes.find({ user: req.user.id }, "-user -__v");
     res.json({ notes });
   } catch (error) {
     res.status(500).json({ error: "Internal server error !" });
   }
 });
 
-//Route 2 : Add a new notes. using POST : "/api/auth/addnote"
+//Route 2 : Add a new note. using POST : "/api/auth/addnote"
 router.post(
   "/addnote",
   fetchuser,
@@ -44,8 +44,8 @@ router.post(
         tag,
         user: req.user.id,
       });
-      await note.save();
-      res.json({ message: "Note added successfully !" });
+      const newNote = await note.save();
+      res.json({ _id: newNote._id, date: newNote.date });
     } catch (error) {
       res.status(500).json({ error: "Internal server error !" });
     }
@@ -54,21 +54,15 @@ router.post(
 
 //Route 3 : Update a note. using PUT : "/api/auth/updatenote"
 router.put("/updatenote/:id", fetchuser, async (req, res) => {
-  const { title, description, tag } = req.body;
+  const { title, description, tag, date } = req.body;
   //New note object.
   const newNote = {};
-  if (title) {
-    newNote.title = title;
-  }
-  if (description) {
-    newNote.description = description;
-  }
-  if (tag) {
-    newNote.tag = tag;
-  }
+  newNote.title = title;
+  newNote.description = description;
+  newNote.tag = tag;
   //Find the note.
   try {
-    const note =await Notes.findById(req.params.id);
+    const note = await Notes.findById(req.params.id);
     if (!note) {
       return res.status(400).send("Note Not found !");
     }
@@ -78,7 +72,7 @@ router.put("/updatenote/:id", fetchuser, async (req, res) => {
     }
     //Updating a note.
     await note.updateOne(
-      { title: title, description: description },
+      { title: title, description: description, tag: tag, date: date },
       { new: true }
     );
     res.json({ message: "Note updated successfully !" });
@@ -91,7 +85,7 @@ router.put("/updatenote/:id", fetchuser, async (req, res) => {
 router.delete("/deletenote/:id", fetchuser, async (req, res) => {
   //Find the note.
   try {
-    const note =await Notes.findById(req.params.id);
+    const note = await Notes.findById(req.params.id);
     if (!note) {
       return res.status(400).send("Note Not found !");
     }
@@ -101,7 +95,7 @@ router.delete("/deletenote/:id", fetchuser, async (req, res) => {
     }
     //Deleting a note.
     await note.deleteOne();
-    res.json({ message: "Note deleted successfully !" });
+    res.send();
   } catch (error) {
     res.status(500).json({ error: "Internal server error !" });
   }
